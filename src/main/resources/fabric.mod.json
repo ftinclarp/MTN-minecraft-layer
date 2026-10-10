@@ -1,0 +1,15 @@
+{
+  "schemaVersion": 1,
+  "id": "mtn_minecraft_layer",
+  "version": "${version}",
+  "name": "MTN Minecraft Layer",
+  "description": "Minecraft 1.7.10 API stand-ins (net.minecraft.*) for ported mods.",
+  "license": "MIT",
+  "environment": "*",
+  "depends": {
+    "fabricloader": ">=0.15.0",
+    "fabric-api": "*",
+    "minecraft": "~1.21.1",
+    "java": ">=21"
+  }
+}
