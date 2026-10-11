@@ -11,7 +11,7 @@ import mtn.minecraft_layer.net.minecraft.item.ItemStack;
 public abstract class Container {
     protected final java.util.List<Slot> inventorySlots = new java.util.ArrayList<>();
 
-    protected Slot addSlotToContainer(Slot slot) {
+    public Slot addSlotToContainer(Slot slot) {
         inventorySlots.add(slot);
         return slot;
     }
@@ -28,5 +28,9 @@ public abstract class Container {
     }
 
     public void detectAndSendChanges() {
+    }
+
+    public java.util.List<Slot> getInventorySlots() {
+        return inventorySlots;
     }
 }

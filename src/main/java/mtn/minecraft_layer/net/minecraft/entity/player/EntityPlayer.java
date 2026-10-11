@@ -7,6 +7,7 @@ package mtn.minecraft_layer.net.minecraft.entity.player;
  */
 public class EntityPlayer {
     public mtn.minecraft_layer.net.minecraft.world.World worldObj;
+    public mtn.minecraft_layer.net.minecraft.inventory.InventoryPlayer inventory;
 
     public String getCommandSenderName() {
         return "Player";

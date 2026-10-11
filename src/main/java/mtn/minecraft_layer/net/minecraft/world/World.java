@@ -7,7 +7,7 @@ import mtn.minecraft_layer.net.minecraft.tileentity.TileEntity;
  * Minimal — enough for TileEntity/entity dummy code to compile.
  */
 public class World {
-    public int getBlockMetadata(int x, int y, int z) {
+    public boolean isRemote;    public int getBlockMetadata(int x, int y, int z) {
         return 0;
     }
 
