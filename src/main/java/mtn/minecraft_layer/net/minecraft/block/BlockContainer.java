@@ -1,5 +1,6 @@
 package mtn.minecraft_layer.net.minecraft.block;
 
+import mtn.minecraft_layer.net.minecraft.block.material.Material;
 import mtn.minecraft_layer.net.minecraft.entity.player.EntityPlayer;
 import mtn.minecraft_layer.net.minecraft.tileentity.TileEntity;
 import mtn.minecraft_layer.net.minecraft.world.World;
@@ -10,8 +11,8 @@ import mtn.minecraft_layer.net.minecraft.world.World;
  */
 public abstract class BlockContainer extends Block {
 
-    protected BlockContainer(String name) {
-        super(name);
+    protected BlockContainer(Material material) {
+        super(material);
     }
 
     @Override

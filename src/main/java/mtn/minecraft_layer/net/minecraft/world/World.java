@@ -11,7 +11,7 @@ public class World {
         return 0;
     }
 
-    public TileEntity getBlockTileEntity(int x, int y, int z) {
+    public TileEntity getTileEntity(int x, int y, int z) {
         return null;
     }
 

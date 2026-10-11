@@ -1,6 +1,6 @@
-package mtn.minecraft_layer.net.minecraft.inventory;
+package mtn.minecraft_layer.net.minecraft.entity.player;
 
-import mtn.minecraft_layer.net.minecraft.entity.player.EntityPlayer;
+import mtn.minecraft_layer.net.minecraft.inventory.IInventory;
 import mtn.minecraft_layer.net.minecraft.item.ItemStack;
 
 /**
