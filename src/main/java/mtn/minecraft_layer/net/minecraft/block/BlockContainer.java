@@ -1,6 +1,7 @@
 package mtn.minecraft_layer.net.minecraft.block;
 
 import mtn.minecraft_layer.net.minecraft.entity.player.EntityPlayer;
+import mtn.minecraft_layer.net.minecraft.tileentity.TileEntity;
 import mtn.minecraft_layer.net.minecraft.world.World;
 
 /**
@@ -18,5 +19,10 @@ public abstract class BlockContainer extends Block {
             EntityPlayer player, int side, float hitX, float hitY, float hitZ) {
         // Default: no-op. Subclasses override.
         return false;
+    }
+
+    /** Forge 1.7.10 contract: subclasses create their tile entity here. */
+    public TileEntity createNewTileEntity(World world, int meta) {
+        return null;
     }
 }
