@@ -40,4 +40,16 @@ public class TileEntity {
     public Block getBlockType() {
         return null;
     }
+
+    /** Forge 1.7.10: block metadata at this position. */
+    public int getBlockMetadata() {
+        // TODO(mtn-layer): return world.getBlockMetadata(x, y, z).
+        return 0;
+    }
+
+    /** Forge 1.7.10: handle a block event packet from the server. */
+    public boolean receiveClientEvent(int eventId, int eventParam) {
+        // TODO(mtn-layer): apply the event payload to the tile entity.
+        return false;
+    }
 }

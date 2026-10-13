@@ -33,4 +33,21 @@ public abstract class Container {
     public java.util.List<Slot> getInventorySlots() {
         return inventorySlots;
     }
+
+    /**
+     * Forge 1.7.10: try to merge a stack into slots {@code [start, end)}.
+     * Stub — always reports "nothing moved".
+     */
+    public boolean mergeItemStack(ItemStack stack, int start, int end, boolean reversed) {
+        // TODO(mtn-layer): real shift-click merge across the slot range.
+        return false;
+    }
+
+    /**
+     * Forge 1.7.10: comparator signal strength from an {@link IInventory}.
+     */
+    public static int calcRedstoneFromInventory(IInventory inventory) {
+        // TODO(mtn-layer): count filled slots / stack-size ratios.
+        return 0;
+    }
 }

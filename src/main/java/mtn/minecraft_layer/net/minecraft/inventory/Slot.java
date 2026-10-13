@@ -34,4 +34,15 @@ public class Slot {
     public boolean isItemValid(ItemStack stack) {
         return inventory.isItemValidForSlot(slotIndex, stack);
     }
+
+    /** Forge 1.7.10: whether this slot holds a stack. */
+    public boolean getHasStack() {
+        // TODO(mtn-layer): inventory.getStackInSlot(slotIndex) != null.
+        return false;
+    }
+
+    /** Forge 1.7.10: called when the slot stack changes. */
+    public void onSlotChanged() {
+        // TODO(mtn-layer): mark the backing inventory dirty.
+    }
 }

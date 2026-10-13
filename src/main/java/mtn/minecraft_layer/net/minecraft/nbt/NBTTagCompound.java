@@ -8,7 +8,7 @@ import java.util.Set;
  * (Forge 1.7.10). In-memory map-backed; enough to compile and exercise
  * ported mod code. No real NBT serialization.
  */
-public class NBTTagCompound {
+public class NBTTagCompound implements NBTBase {
     private final Map<String, Object> data = new java.util.HashMap<>();
 
     public void setString(String key, String value) {
@@ -84,6 +84,19 @@ public class NBTTagCompound {
     public NBTTagList getTagList(String key, int type) {
         Object v = data.get(key);
         return v instanceof NBTTagList ? (NBTTagList) v : new NBTTagList();
+    }
+
+    /** Forge 1.7.10: store any NBT tag under {@code key}. */
+    public void setTag(String key, NBTBase tag) {
+        data.put(key, tag);
+    }
+
+    /** Forge 1.7.10: deep copy of this compound. */
+    public NBTTagCompound copy() {
+        // TODO(mtn-layer): real deep copy of the map.
+        NBTTagCompound c = new NBTTagCompound();
+        c.data.putAll(this.data);
+        return c;
     }
 
     @Override

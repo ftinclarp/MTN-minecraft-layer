@@ -13,6 +13,9 @@ public class InventoryPlayer implements IInventory {
 
     private final ItemStack[] stacks = new ItemStack[36];
 
+    /** Forge 1.7.10: owning player (used by ContainerIronChest). */
+    public EntityPlayer player;
+
     @Override
     public int getSizeInventory() {
         return stacks.length;

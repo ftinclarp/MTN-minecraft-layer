@@ -7,10 +7,11 @@ import java.util.List;
  * Dummy stand-in for {@code net.minecraft.nbt.NBTTagList} (Forge 1.7.10).
  * In-memory list-backed; enough to compile and exercise ported mod code.
  */
-public class NBTTagList {
+public class NBTTagList implements NBTBase {
     private final List<Object> list = new ArrayList<>();
 
-    public void appendTag(NBTTagCompound tag) {
+    /** Forge 1.7.10: accepts any NBT tag (broadened from NBTTagCompound). */
+    public void appendTag(NBTBase tag) {
         list.add(tag);
     }
 

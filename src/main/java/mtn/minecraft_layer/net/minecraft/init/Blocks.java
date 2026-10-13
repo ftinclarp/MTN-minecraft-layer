@@ -12,4 +12,7 @@ public class Blocks {
     public static final Block air = new Block(Material.air);
     public static final Block stone = new Block(Material.rock);
     public static final Block dirt = new Block(Material.ground);
+    public static final Block glass = new Block(Material.glass);
+    public static final Block obsidian = new Block(Material.rock);
+    public static final Block chest = new Block(Material.wood);
 }

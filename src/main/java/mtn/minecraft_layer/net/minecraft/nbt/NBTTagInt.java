@@ -4,7 +4,7 @@ package mtn.minecraft_layer.net.minecraft.nbt;
  * Dummy stand-in for {@code net.minecraft.nbt.NBTTagInt} (Forge 1.7.10).
  * Trivial int wrapper — enough to compile typical {@code new NBTTagInt(...)}.
  */
-public class NBTTagInt {
+public class NBTTagInt implements NBTBase {
     private final int value;
 
     public NBTTagInt(int value) {
