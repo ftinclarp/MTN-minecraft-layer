@@ -107,4 +107,30 @@ public class Item {
         // TODO(mtn-layer): real first-use placement logic.
         return false;
     }
+
+    // ---------------- Network item registry ----------------
+
+    private static final java.util.Map<Integer, Item> BY_ID = new java.util.HashMap<>();
+    private static final java.util.Map<Item, Integer> ID_BY_ITEM = new java.util.HashMap<>();
+    private static int nextId = 1;
+
+    /** Forge 1.7.10: numeric id of an item, assigning ids on first contact. */
+    public static int getIdFromItem(Item item) {
+        if (item == null) {
+            return -1;
+        }
+        Integer existing = ID_BY_ITEM.get(item);
+        if (existing != null) {
+            return existing;
+        }
+        int id = nextId++;
+        BY_ID.put(id, item);
+        ID_BY_ITEM.put(item, id);
+        return id;
+    }
+
+    /** Forge 1.7.10: item with the given numeric id, or null. */
+    public static Item getItemById(int id) {
+        return BY_ID.get(id);
+    }
 }

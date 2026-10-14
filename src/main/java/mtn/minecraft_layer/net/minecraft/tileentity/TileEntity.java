@@ -52,4 +52,14 @@ public class TileEntity {
         // TODO(mtn-layer): apply the event payload to the tile entity.
         return false;
     }
+
+    /**
+     * Forge 1.7.10: returns the packet sent to the client when this tile entity
+     * is created/re-synced, or null for no custom description packet. Mods override
+     * this (e.g. IronChest generates a network message via its channel). The layer
+     * itself ships the wire-tagged update through the Fabric bridge.
+     */
+    public mtn.minecraft_layer.net.minecraft.network.Packet getDescriptionPacket() {
+        return null;
+    }
 }
