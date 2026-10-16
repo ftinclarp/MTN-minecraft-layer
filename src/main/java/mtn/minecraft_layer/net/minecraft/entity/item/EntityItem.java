@@ -12,6 +12,14 @@ public class EntityItem extends Entity {
 
     private ItemStack itemStack;
 
+    /** Forge 1.7.10: bobbing start offset (set by renderers). */
+    public float hoverStart = 0.0F;
+
+    /** Forge 1.7.10: replace the stack this entity carries. */
+    public void setEntityItemStack(ItemStack stack) {
+        this.itemStack = stack;
+    }
+
     // TODO(mtn-layer): spawn the item entity into the world with no motion;
     //   used by the single-arg path in the chest renderer.
     public EntityItem(World world) {

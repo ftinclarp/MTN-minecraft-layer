@@ -2,6 +2,7 @@ package mtn.minecraft_layer.net.minecraft.tileentity;
 
 import mtn.minecraft_layer.net.minecraft.block.Block;
 import mtn.minecraft_layer.net.minecraft.nbt.NBTTagCompound;
+import mtn.minecraft_layer.net.minecraft.world.World;
 
 /**
  * Dummy stand-in for {@code net.minecraft.tileentity.TileEntity}
@@ -39,6 +40,24 @@ public class TileEntity {
 
     public Block getBlockType() {
         return null;
+    }
+
+    /** Forge 1.7.10: whether this tile is attached to a loaded world. */
+    public boolean hasWorldObj() {
+        return worldObj != null;
+    }
+
+    /** Forge 1.7.10: the world this tile lives in (null when not placed). */
+    public World getWorldObj() {
+        return worldObj;
+    }
+
+    /** Forge 1.7.10: squared distance to a world point (renderer culling). */
+    public double getDistanceFrom(double x, double y, double z) {
+        double dx = x - xCoord - 0.5D;
+        double dy = y - yCoord - 0.5D;
+        double dz = z - zCoord - 0.5D;
+        return dx * dx + dy * dy + dz * dz;
     }
 
     /** Forge 1.7.10: block metadata at this position. */
