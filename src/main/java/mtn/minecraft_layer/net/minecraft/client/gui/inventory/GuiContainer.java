@@ -25,6 +25,14 @@ public abstract class GuiContainer extends GuiScreen {
     protected void drawGuiContainerBackgroundLayer(float partialTicks, int mouseX, int mouseY) {
     }
 
+    /**
+     * Public entry point used by the forge-layer {@code PortedChestScreen} to drive
+     * the ported GUI's background draw from a Fabric {@code Screen.render}.
+     */
+    public void mtnDrawBackground(float partialTicks, int mouseX, int mouseY) {
+        drawGuiContainerBackgroundLayer(partialTicks, mouseX, mouseY);
+    }
+
     protected void drawGuiContainerForegroundLayer(int mouseX, int mouseY) {
     }
 }

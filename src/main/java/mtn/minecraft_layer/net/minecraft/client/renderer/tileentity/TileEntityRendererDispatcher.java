@@ -11,6 +11,12 @@ import mtn.minecraft_layer.net.minecraft.world.World;
  * (Forge 1.7.10) — holds the registered per-class renderers and the world
  * render origin the ported IronChest renderer reads through
  * {@code field_147501_a.field_147560_j} etc.
+ *
+ * <p>Also carries the <em>current Fabric render context</em> for the ported
+ * {@code ModelRenderer} bridge: the {@link PoseStack} and the strip of the
+ * currently-bound texture's {@code RenderType} are installed by the forge-layer
+ * {@code ForgeTESRBridge} right before delegating
+ * ({@code matri...}). {@link ModelRenderer} reads them to emit quads.
  */
 public class TileEntityRendererDispatcher {
 
@@ -26,6 +32,14 @@ public class TileEntityRendererDispatcher {
 
     private final Map<Class<? extends TileEntity>, TileEntitySpecialRenderer<?>> renderers =
             new HashMap<>();
+
+    // ---- current Fabric render context (set by forge-layer bridge) ----
+    private com.mojang.blaze3d.vertex.PoseStack currentPoseStack;
+    private net.minecraft.client.renderer.MultiBufferSource currentConsumers;
+    private net.minecraft.resources.ResourceLocation currentTexture;
+    private int currentLight;
+    private int currentOverlay;
+    private boolean contextInstalled;
 
     public TileEntityRendererDispatcher() {
         field_147560_j = 0.0D;
@@ -56,6 +70,72 @@ public class TileEntityRendererDispatcher {
     }
 
     public void bindTexture(ResourceLocation location) {
-        // TODO(mtn-layer): bind via the Fabric client's RenderSystem for the path.
+        if (location != null) {
+            currentTexture = net.minecraft.resources.ResourceLocation
+                    .fromNamespaceAndPath(location.getResourceDomain(),
+                            location.getResourcePath());
+        }
+    }
+
+    // ---- current-context API for the ModelRenderer bridge ----
+
+    /** Install the Fabric render context for the current frame. */
+    public void installRenderContext(com.mojang.blaze3d.vertex.PoseStack matrices,
+                                     net.minecraft.client.renderer.MultiBufferSource consumers) {
+        installRenderContext(matrices, consumers, 0xF000F0, 0);
+    }
+
+    /** Install the Fabric render context including per-vertex light/overlay. */
+    public void installRenderContext(com.mojang.blaze3d.vertex.PoseStack matrices,
+                                     net.minecraft.client.renderer.MultiBufferSource consumers,
+                                     int light, int overlay) {
+        this.currentPoseStack = matrices;
+        this.currentConsumers = consumers;
+        this.currentLight = light;
+        this.currentOverlay = overlay;
+        this.contextInstalled = true;
+    }
+
+    /** Clears the context after a render (defensive: nothing holds it). */
+    public void clearRenderContext() {
+        this.currentPoseStack = null;
+        this.currentConsumers = null;
+        this.currentTexture = null;
+        this.currentLight = 0xF000F0;
+        this.currentOverlay = 0;
+        this.contextInstalled = false;
+    }
+
+    public com.mojang.blaze3d.vertex.PoseStack getCurrentPoseStack() {
+        return currentPoseStack;
+    }
+
+    public boolean isContextInstalled() {
+        return contextInstalled;
+    }
+
+    public net.minecraft.resources.ResourceLocation getCurrentTexture() {
+        return currentTexture;
+    }
+
+    public int getCurrentLight() {
+        return currentLight;
+    }
+
+    public int getCurrentOverlay() {
+        return currentOverlay;
+    }
+
+    /**
+     * Returns a {@code VertexConsumer} for the currently-bound texture's
+     * {@code RenderType} (entity cutout), obtained from the installed
+     * {@code MultiBufferSource}; {@code null} when no context/texture is set.
+     */
+    public com.mojang.blaze3d.vertex.VertexConsumer getCurrentVertexConsumer() {
+        if (currentConsumers == null || currentTexture == null) {
+            return null;
+        }
+        return currentConsumers.getBuffer(
+                net.minecraft.client.renderer.RenderType.entityCutout(currentTexture));
     }
 }

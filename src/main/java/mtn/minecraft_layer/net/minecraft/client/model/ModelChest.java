@@ -1,10 +1,13 @@
 package mtn.minecraft_layer.net.minecraft.client.model;
 
 /**
- * Stand-in for {@code net.minecraft.client.model.ModelChest} (Forge 1.7.10) — the
- * vanilla chest geometry: a lid, the box below it and the knob. The model parts are
- * {@link ModelRenderer} data holders; actual drawing goes through the Fabric
- * ModelPart bridge (forge layer) which reads these parts' rotation state.
+ * Bridge for {@code net.minecraft.client.model.ModelChest} (Forge 1.7.10) — the
+ * vanilla chest geometry used by the ported IronChest TESR.
+ *
+ * <p>The geometry reproduces the 1.7.10 chest: a lid (rotated by the mod via
+ * {@code rotateAngleX}), the box below it and the knob. {@link #renderAll()}
+ * delegates to each part's {@link ModelRenderer} bridge, which emits real quads
+ * through the active Fabric render context.
  */
 public class ModelChest extends ModelBase {
 
@@ -14,23 +17,37 @@ public class ModelChest extends ModelBase {
     public ModelRenderer chestLid2;
 
     public ModelChest() {
-        // The vanilla chest box layout (model-space, mirror of the 1.7.10
-        // ModelChest). Coordinates here are the classic chest proportions.
-        chestLid = buildPart(0, 0, 7, 0, 7);   // lid plate
-        chestLid.setRotationPoint(0, 5, 1);
-        chestBelow = buildPart(1, 7, 0, 7);     // body
-        chestBelow.setRotationPoint(1, 7, 1);
-        chestKnob = buildPart(7, 0, 7, 3, 3, 3); // knob
-    }
+        this.textureWidth = 64;
+        this.textureHeight = 64;
 
-    private ModelRenderer buildPart(float... in) {
-        return new ModelRenderer("chest-part");
+        chestLid = new ModelRenderer("chest-lid");
+        chestLid.setTextureSize(64, 64);
+        chestLid.setTextureOffset(0, 0);
+        chestLid.addBox(0.0F, -5.0F, -14.0F, 14, 5, 14, 0.0F);
+        chestLid.setRotationPoint(1.0F, 7.0F, 15.0F);
+
+        chestBelow = new ModelRenderer("chest-below");
+        chestBelow.setTextureSize(64, 64);
+        chestBelow.setTextureOffset(0, 19);
+        chestBelow.addBox(0.0F, 0.0F, 0.0F, 14, 10, 14, 0.0F);
+        chestBelow.setRotationPoint(1.0F, 6.0F, 1.0F);
+
+        chestKnob = new ModelRenderer("chest-knob");
+        chestKnob.setTextureSize(64, 64);
+        chestKnob.setTextureOffset(14, 0);
+        chestKnob.addBox(-1.0F, -2.0F, -15.0F, 2, 4, 1, 0.0F);
+        chestKnob.setRotationPoint(8.0F, 7.0F, 15.0F);
+
+        // Not part of the classic vanilla model; kept for structural parity with
+        // older layer scaffolding.
+        chestLid2 = null;
     }
 
     @Override
     public void renderAll() {
-        // TODO(mtn-layer): the forge-layer ForgeTESRBridge renders this model
-        //  through the Fabric ModelPart pipeline, bypassing ModelRenderer.
-        //  This hook is where the lid rotation (rotateAngleX) is applied.
+        float scale = 0.0625F;
+        chestBelow.render(scale);
+        chestLid.render(scale);
+        chestKnob.render(scale);
     }
 }

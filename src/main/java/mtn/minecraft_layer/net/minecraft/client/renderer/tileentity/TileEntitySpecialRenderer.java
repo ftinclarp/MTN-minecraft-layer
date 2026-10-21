@@ -17,6 +17,17 @@ public abstract class TileEntitySpecialRenderer<T extends TileEntity> {
      */
     public TileEntityRendererDispatcher field_147501_a;
 
+    /**
+     * The current {@code PoseStack} installed by the forge-layer
+     * {@code ForgeTESRBridge} before it calls {@link #renderTileEntityAt}.
+     * The MTN-lwjgl transformer rewrites the mod's GL11
+     * ({@code glPushMatrix/glTranslatef/glRotatef/scalef}) to
+     * {@code matrices.pushPose()/translate()/mulPose()/scale()}, which resolve
+     * to this field on the ported renderer's base class. This keeps the mod's
+     * code unchanged — the field lives in the layer.
+     */
+    public com.mojang.blaze3d.vertex.PoseStack matrices;
+
     /** Render this tile entity at the given block-relative coordinates. */
     public abstract void renderTileEntityAt(T te, double x, double y, double z,
                                             float partialTicks);

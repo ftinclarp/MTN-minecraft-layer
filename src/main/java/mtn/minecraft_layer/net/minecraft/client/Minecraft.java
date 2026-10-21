@@ -44,4 +44,25 @@ public class Minecraft {
         // TODO(mtn-layer): wrap the ported Forge GuiContainer in a Fabric
         //  HandledScreen adapter so the chest GUI actually opens in-game.
     }
+
+    // ---------------------------------------------------------------------
+    // GUI rendering surface (MTN-lwjgl-transformer / GUI bridge)
+    // ---------------------------------------------------------------------
+    // The ported GUIChest's drawGuiContainerBackgroundLayer uses
+    // TextureManager.bindTexture + GuiScreen.drawTexturedModalRect. On the
+    // Fabric side that drawing happens inside a Screen.render(GuiGraphics),
+    // so the forge-layer bridge screen installs the current GuiGraphics here
+    // for the lifespan of that render call.
+    /** The active Fabric {@code GuiGraphics} (set by the forge-layer bridge around a ported GUI render). */
+    private Object activeGuiGraphics;
+
+    /** Set the active {@code GuiGraphics} while a ported GUI renders. */
+    public void setActiveGuiGraphics(Object guiGraphics) {
+        this.activeGuiGraphics = guiGraphics;
+    }
+
+    /** The active {@code GuiGraphics}, or null outside a ported GUI render. */
+    public Object getActiveGuiGraphics() {
+        return activeGuiGraphics;
+    }
 }
