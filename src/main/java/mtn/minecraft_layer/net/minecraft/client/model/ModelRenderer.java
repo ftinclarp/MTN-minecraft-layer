@@ -3,7 +3,9 @@ package mtn.minecraft_layer.net.minecraft.client.model;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import com.mojang.math.Axis;
+import net.minecraft.client.renderer.LightTexture;
 import org.joml.Matrix4f;
+import org.joml.Vector3f;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -169,81 +171,78 @@ public class ModelRenderer {
             }
             int light = dispatcher.getCurrentLight();
             int overlay = dispatcher.getCurrentOverlay();
-            // Capture the current pose so raw cube pixel coords are transformed
-            // by the model matrix (including the scale above).
-            Matrix4f poseMatrix = matrices.last().pose();
+            // The dispatcher's light can be 0 in some render pipelines (forged
+            // TESRs run outside the vanilla light computation), which makes the
+            // whole model pitch black because the lightmap texel sampled for
+            // UV2=(0,0) is black. Fall back to full-bright so the model is
+            // always visible; per-face normal shading is unaffected because
+            // mix_light() uses the world normal, not the light value.
+            if (light == 0) {
+                light = LightTexture.FULL_BRIGHT;
+            }
+            // The 1/16 body scale is already in the pose (applied before cubes
+            // are emitted), so cubes below are written in raw pixel coords and
+            // transformed by the pose matrix, exactly like vanilla
+            // ModelPart$Cube.compile. Normals follow the same convention:
+            // the model-space outward unit normal is rotated into world space
+            // with PoseStack.Pose.transformNormal.
+            PoseStack.Pose poseEntry = matrices.last();
+            Matrix4f poseMatrix = poseEntry.pose();
+            Vector3f nDown = poseEntry.transformNormal(0, -1, 0, new Vector3f()).normalize();
+            Vector3f nUp = poseEntry.transformNormal(0, 1, 0, new Vector3f()).normalize();
+            Vector3f nWest = poseEntry.transformNormal(-1, 0, 0, new Vector3f()).normalize();
+            Vector3f nNorth = poseEntry.transformNormal(0, 0, -1, new Vector3f()).normalize();
+            Vector3f nEast = poseEntry.transformNormal(1, 0, 0, new Vector3f()).normalize();
+            Vector3f nSouth = poseEntry.transformNormal(0, 0, 1, new Vector3f()).normalize();
+
             float x0 = this.x, y0 = this.y, z0 = this.z;
             float x1 = this.x + this.w, y1 = this.y + this.h, z1 = this.z + this.d;
 
-            // Helper layout from the classic 1.7.10 ModelBox (64-wide sheet).
-            //   top (+Y) strip:    u0, v0..v0+w? use u horizontally, v vertically.
-            // We reproduce the well-known layout where each face uses slices:
-            //   top   : (u0 + d -> u0 + d + w) across x, (v0 -> v0 + d) across z
-            //   bottom: (u0 + d + w -> u0 + 2d + w) across x, (v0 + d -> v0) ...
-            //   front (+Z): (u0 + d -> u0 + d + w) across x, (v0 + d -> v0 + d + h) across y
-            //   back  (-Z): (u0 -> u0 + w) across x, (v0 + d -> v0 + d + h) across y
-            //   left  (-X): (u0 -> u0 + d) across z, (v0 + d -> v0 + d + h) across y
-            //   right (+X): (u0 + d + w -> u0 + 2d + w) across z, (v0 + d -> v0 + d + h) across y
+            // UV regions follow the 1.7.10 ModelBox layout on the sheet
+            // (setTextureOffset(u, v) + addBox(w,h,d)) exactly, so ported
+            // textures line up. Each face gets its four corner UVs with the
+            // 1.7.10 TexturedQuad remap: vertex0=(maxU,minV), vertex1=(minU,minV),
+            // vertex2=(minU,maxV), vertex3=(maxU,maxV).
+            float u = this.u0, v = this.v0;
+            float w = this.w, h = this.h, d = this.d;
+            float invTw = 1.0F / tw, invTh = 1.0F / th;
 
-            float uTop = (u0 + d) / tw;
-            float vTop = v0 / th;
-            float uTopR = (u0 + d + w) / tw;
-            float vTopD = (v0 + d) / th;
-
-            float uBot = (u0 + d + w) / tw;
-            float vBot = (v0 + d + w - d) / th; // bottom strips v go the other way
-            float uBotR = (u0 + 2 * d + w) / tw;
-
-            float uFrontL = (u0 + d) / tw;
-            float uFrontR = (u0 + d + w) / tw;
-            float vFrontTop = (v0 + d) / th;
-            float vFrontBot = (v0 + d + h) / th;
-            float uBackL = u0 / tw;
-            float uBackR = (u0 + w) / tw;
-
-            float uLeftL = u0 / tw;
-            float uLeftR = (u0 + d) / tw;
-            float vSideTop = (v0 + d) / th;
-            float vSideBot = (v0 + d + h) / th;
-            float uRightL = (u0 + d + w) / tw;
-            float uRightR = (u0 + 2 * d + w) / tw;
-
-            // top (+Y)
+            // Down (-Y)  — ModelBox quadList[2]: (u+d, v, u+d+w, v+d)
             quad(consumer, poseMatrix, light, overlay,
-                    x0, y1, z0, uTop, vTopD, 0, 1, 0,
-                    x1, y1, z0, uTopR, vTopD, 0, 1, 0,
-                    x1, y1, z1, uTopR, vTop, 0, 1, 0,
-                    x0, y1, z1, uTop, vTop, 0, 1, 0);
-            // bottom (-Y)
+                    x1, y0, z1, (u + d + w) * invTw, v * invTh, nDown.x, nDown.y, nDown.z,
+                    x0, y0, z1, (u + d) * invTw, v * invTh, nDown.x, nDown.y, nDown.z,
+                    x0, y0, z0, (u + d) * invTw, (v + d) * invTh, nDown.x, nDown.y, nDown.z,
+                    x1, y0, z0, (u + d + w) * invTw, (v + d) * invTh, nDown.x, nDown.y, nDown.z);
+            // Up (+Y)  — ModelBox quadList[3]: (u+d+w, v+d, u+2d+w, v)
             quad(consumer, poseMatrix, light, overlay,
-                    x0, y0, z1, uBot, vBot, 0, -1, 0,
-                    x1, y0, z1, uBotR, vBot, 0, -1, 0,
-                    x1, y0, z0, uBotR, vBot + (float) d / th, 0, -1, 0,
-                    x0, y0, z0, uBot, vBot + (float) d / th, 0, -1, 0);
-            // front (+Z)
+                    x1, y1, z0, (u + 2 * d + w) * invTw, (v + d) * invTh, nUp.x, nUp.y, nUp.z,
+                    x0, y1, z0, (u + d + w) * invTw, (v + d) * invTh, nUp.x, nUp.y, nUp.z,
+                    x0, y1, z1, (u + d + w) * invTw, v * invTh, nUp.x, nUp.y, nUp.z,
+                    x1, y1, z1, (u + 2 * d + w) * invTw, v * invTh, nUp.x, nUp.y, nUp.z);
+            // West (-X)  — ModelBox quadList[1]: (u, v+d, u+d, v+d+h)
             quad(consumer, poseMatrix, light, overlay,
-                    x0, y1, z1, uFrontL, vFrontTop, 0, 0, 1,
-                    x1, y1, z1, uFrontR, vFrontTop, 0, 0, 1,
-                    x1, y0, z1, uFrontR, vFrontBot, 0, 0, 1,
-                    x0, y0, z1, uFrontL, vFrontBot, 0, 0, 1);
-            // back (-Z)
+                    x0, y0, z0, (u + d) * invTw, (v + d) * invTh, nWest.x, nWest.y, nWest.z,
+                    x0, y0, z1, u * invTw, (v + d) * invTh, nWest.x, nWest.y, nWest.z,
+                    x0, y1, z1, u * invTw, (v + d + h) * invTh, nWest.x, nWest.y, nWest.z,
+                    x0, y1, z0, (u + d) * invTw, (v + d + h) * invTh, nWest.x, nWest.y, nWest.z);
+            // North (-Z)  — ModelBox quadList[4]: (u+d, v+d, u+d+w, v+d+h)
             quad(consumer, poseMatrix, light, overlay,
-                    x0, y1, z0, uBackL, vFrontTop, 0, 0, -1,
-                    x1, y1, z0, uBackR, vFrontTop, 0, 0, -1,
-                    x1, y0, z0, uBackR, vFrontBot, 0, 0, -1,
-                    x0, y0, z0, uBackL, vFrontBot, 0, 0, -1);
-            // left (-X)
+                    x1, y0, z0, (u + d + w) * invTw, (v + d) * invTh, nNorth.x, nNorth.y, nNorth.z,
+                    x0, y0, z0, (u + d) * invTw, (v + d) * invTh, nNorth.x, nNorth.y, nNorth.z,
+                    x0, y1, z0, (u + d) * invTw, (v + d + h) * invTh, nNorth.x, nNorth.y, nNorth.z,
+                    x1, y1, z0, (u + d + w) * invTw, (v + d + h) * invTh, nNorth.x, nNorth.y, nNorth.z);
+            // East (+X)  — ModelBox quadList[0]: (u+d+w, v+d, u+2d+w, v+d+h)
             quad(consumer, poseMatrix, light, overlay,
-                    x0, y1, z1, uLeftL, vSideTop, -1, 0, 0,
-                    x0, y1, z0, uLeftR, vSideTop, -1, 0, 0,
-                    x0, y0, z0, uLeftR, vSideBot, -1, 0, 0,
-                    x0, y0, z1, uLeftL, vSideBot, -1, 0, 0);
-            // right (+X)
+                    x1, y0, z1, (u + 2 * d + w) * invTw, (v + d) * invTh, nEast.x, nEast.y, nEast.z,
+                    x1, y0, z0, (u + d + w) * invTw, (v + d) * invTh, nEast.x, nEast.y, nEast.z,
+                    x1, y1, z0, (u + d + w) * invTw, (v + d + h) * invTh, nEast.x, nEast.y, nEast.z,
+                    x1, y1, z1, (u + 2 * d + w) * invTw, (v + d + h) * invTh, nEast.x, nEast.y, nEast.z);
+            // South (+Z)  — ModelBox quadList[5]: (u+2d+w, v+d, u+2d+2w, v+d+h)
             quad(consumer, poseMatrix, light, overlay,
-                    x1, y1, z0, uRightL, vSideTop, 1, 0, 0,
-                    x1, y1, z1, uRightR, vSideTop, 1, 0, 0,
-                    x1, y0, z1, uRightR, vSideBot, 1, 0, 0,
-                    x1, y0, z0, uRightL, vSideBot, 1, 0, 0);
+                    x0, y0, z1, (u + 2 * d + 2 * w) * invTw, (v + d) * invTh, nSouth.x, nSouth.y, nSouth.z,
+                    x1, y0, z1, (u + 2 * d + w) * invTw, (v + d) * invTh, nSouth.x, nSouth.y, nSouth.z,
+                    x1, y1, z1, (u + 2 * d + w) * invTw, (v + d + h) * invTh, nSouth.x, nSouth.y, nSouth.z,
+                    x0, y1, z1, (u + 2 * d + 2 * w) * invTw, (v + d + h) * invTh, nSouth.x, nSouth.y, nSouth.z);
         }
 
         /** Emit one quad (4 vertices, each with position + uv + normal + light). */
